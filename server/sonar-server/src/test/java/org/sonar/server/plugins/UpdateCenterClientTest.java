@@ -41,7 +41,7 @@ import static org.mockito.Mockito.when;
 
 public class UpdateCenterClientTest {
 
-  static final String BASE_URL = "http://update.sonarsource.org";
+  static final String BASE_URL = "https://update.sonarsource.org";
   UriReader reader;
   Settings settings;
 
