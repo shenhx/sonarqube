@@ -37,23 +37,24 @@ final class LoadedProjects {
   static final String SONAR_PROJECT_PROPERTIES_FILE_NAME = "sonar-project.properties";
 
   private final Map<String, ProjectState> projectStatePerProjectKey = new HashMap<>();
-  private final Set<String> knownProjects = new HashSet<>();
+  private final Set<String> knownRelativePaths = new HashSet<>();
 
   public void reset() {
     this.projectStatePerProjectKey.clear();
-    this.knownProjects.clear();
+    this.knownRelativePaths.clear();
   }
 
   public String load(String projectRelativePath) {
-    checkState(!knownProjects.contains(projectRelativePath), "Project at location %s already loaded", projectRelativePath);
+    checkState(!knownRelativePaths.contains(projectRelativePath), "Project at location %s already loaded", projectRelativePath);
 
     File projectDir = ItUtils.projectDir(projectRelativePath);
     Properties sonarProjectProperties = loadProjectProperties(projectDir);
     ProjectState projectState = new ProjectState(projectDir, sonarProjectProperties);
 
+    String projectKey = projectState.getProjectKey();
     register(projectRelativePath, projectState);
 
-    return projectState.getProjectKey();
+    return projectKey;
   }
 
   public ProjectState getProjectState(String projectKey) {
@@ -63,8 +64,11 @@ final class LoadedProjects {
   }
 
   private void register(String projectRelativePath, ProjectState projectState) {
-    this.projectStatePerProjectKey.put(projectState.getProjectKey(), projectState);
-    this.knownProjects.add(projectRelativePath);
+    String projectKey = projectState.getProjectKey();
+    if (!this.projectStatePerProjectKey.containsKey(projectKey)) {
+      this.projectStatePerProjectKey.put(projectKey, projectState);
+    }
+    this.knownRelativePaths.add(projectRelativePath);
   }
 
   private static Properties loadProjectProperties(File projectDir) {
