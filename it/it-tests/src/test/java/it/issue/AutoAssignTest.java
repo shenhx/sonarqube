@@ -38,6 +38,7 @@ import static util.ItUtils.setServerProperty;
 public class AutoAssignTest extends AbstractIssueTest {
 
   static final String SIMON_USER = "simon";
+  static final String FABRICE_USER = "fabrice";
 
   @Rule
   public final ProjectAnalysisRule projectAnalysisRule = ProjectAnalysisRule.from(ORCHESTRATOR);
@@ -47,20 +48,13 @@ public class AutoAssignTest extends AbstractIssueTest {
   @Before
   public void setup() {
     ORCHESTRATOR.resetData();
-
-    String qualityProfileKey = projectAnalysisRule.registerProfile("/issue/IssueActionTest/xoo-one-issue-per-line-profile.xml");
-    String projectKey = projectAnalysisRule.registerProject("issue/xoo-with-scm");
-    projectAnalysis = projectAnalysisRule.newProjectAnalysis(projectKey)
-      .withQualityProfile(qualityProfileKey)
-      .withProperties("sonar.scm.disabled", "false", "sonar.scm.provider", "xoo");
   }
 
   @After
   public void resetData() throws Exception {
-    // Remove user simon
-    newAdminWsClient(ORCHESTRATOR).wsConnector().call(
-      new PostRequest("api/users/deactivate")
-        .setParam("login", SIMON_USER));
+    // Remove user simon and fabrice
+    deactivateUser(SIMON_USER);
+    deactivateUser(FABRICE_USER);
 
     // Reset default assignee
     setServerProperty(ORCHESTRATOR, "sonar.issues.defaultAssigneeLogin", null);
@@ -68,6 +62,8 @@ public class AutoAssignTest extends AbstractIssueTest {
 
   @Test
   public void auto_assign_issues_to_user() throws Exception {
+    analyseWithOneIssuePerLine();
+
     createUser(SIMON_USER, SIMON_USER);
     projectAnalysis.run();
 
@@ -79,7 +75,24 @@ public class AutoAssignTest extends AbstractIssueTest {
 
   @Test
   public void auto_assign_issues_to_default_assignee() throws Exception {
+    analyseWithOneIssuePerLine();
+
     createUser(SIMON_USER, SIMON_USER);
+    setServerProperty(ORCHESTRATOR, "sonar.issues.defaultAssigneeLogin", SIMON_USER);
+    projectAnalysis.run();
+
+    // Simon has all issues
+    assertThat(search(IssueQuery.create().assignees(SIMON_USER)).list()).hasSize(13);
+    // No unassigned issues
+    assertThat(search(IssueQuery.create().assigned(false)).list()).isEmpty();
+  }
+
+  @Test
+  public void auto_assign_issues_on_file_to_last_committer() throws Exception {
+    analyseWithOneIssuePerLineAndFile();
+
+    createUser(SIMON_USER, SIMON_USER);
+    createUser(FABRICE_USER, FABRICE_USER);
     setServerProperty(ORCHESTRATOR, "sonar.issues.defaultAssigneeLogin", SIMON_USER);
     projectAnalysis.run();
 
@@ -99,6 +112,8 @@ public class AutoAssignTest extends AbstractIssueTest {
    */
   @Test
   public void update_author_and_assignee_when_scm_is_activated() {
+    analyseWithOneIssuePerLine();
+
     createUser(SIMON_USER, SIMON_USER);
 
     // Run a first analysis without SCM
@@ -131,5 +146,27 @@ public class AutoAssignTest extends AbstractIssueTest {
         .setParam("name", login)
         .setParam("password", password));
     assertThat(response.code()).isEqualTo(200);
+  }
+
+  private void deactivateUser(String user) {
+    newAdminWsClient(ORCHESTRATOR).wsConnector().call(
+        new PostRequest("api/users/deactivate")
+            .setParam("login", user));
+  }
+
+  private void analyseWithOneIssuePerLine() {
+    String qualityProfileKey = projectAnalysisRule.registerProfile("/issue/IssueActionTest/xoo-one-issue-per-line-profile.xml");
+    String projectKey = projectAnalysisRule.registerProject("issue/xoo-with-scm");
+    projectAnalysis = projectAnalysisRule.newProjectAnalysis(projectKey)
+        .withQualityProfile(qualityProfileKey)
+        .withProperties("sonar.scm.disabled", "false", "sonar.scm.provider", "xoo");
+  }
+
+  private void analyseWithOneIssuePerLineAndFile() {
+    String qualityProfileKey = projectAnalysisRule.registerProfile("/issue/IssueActionTest/xoo-one-issue-per-line-and-file-profile.xml");
+    String projectKey = projectAnalysisRule.registerProject("issue/xoo-with-scm");
+    projectAnalysis = projectAnalysisRule.newProjectAnalysis(projectKey)
+        .withQualityProfile(qualityProfileKey)
+        .withProperties("sonar.scm.disabled", "false", "sonar.scm.provider", "xoo");
   }
 }
