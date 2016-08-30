@@ -62,7 +62,7 @@ public class AutoAssignTest extends AbstractIssueTest {
 
   @Test
   public void auto_assign_issues_to_user() throws Exception {
-    analyseWithOneIssuePerLine();
+    analyseWithOneIssuePerLine("issue/xoo-with-scm");
 
     createUser(SIMON_USER, SIMON_USER);
     projectAnalysis.run();
@@ -75,7 +75,7 @@ public class AutoAssignTest extends AbstractIssueTest {
 
   @Test
   public void auto_assign_issues_to_default_assignee() throws Exception {
-    analyseWithOneIssuePerLine();
+    analyseWithOneIssuePerLine("issue/xoo-with-scm");
 
     createUser(SIMON_USER, SIMON_USER);
     setServerProperty(ORCHESTRATOR, "sonar.issues.defaultAssigneeLogin", SIMON_USER);
@@ -89,11 +89,14 @@ public class AutoAssignTest extends AbstractIssueTest {
 
   @Test
   public void auto_assign_issues_on_file_to_last_committer() throws Exception {
-    analyseWithOneIssuePerLineAndFile();
+    analyseWithOneIssuePerLine("issue/xoo-with-scm-2");
 
     createUser(SIMON_USER, SIMON_USER);
     createUser(FABRICE_USER, FABRICE_USER);
     setServerProperty(ORCHESTRATOR, "sonar.issues.defaultAssigneeLogin", SIMON_USER);
+    projectAnalysis.run();
+
+    analyseWithOneIssuePerLineAndFile("issue/xoo-with-scm-2-v2");
     projectAnalysis.run();
 
     // Simon has all issues
@@ -112,7 +115,7 @@ public class AutoAssignTest extends AbstractIssueTest {
    */
   @Test
   public void update_author_and_assignee_when_scm_is_activated() {
-    analyseWithOneIssuePerLine();
+    analyseWithOneIssuePerLine("issue/xoo-with-scm");
 
     createUser(SIMON_USER, SIMON_USER);
 
@@ -150,23 +153,24 @@ public class AutoAssignTest extends AbstractIssueTest {
 
   private void deactivateUser(String user) {
     newAdminWsClient(ORCHESTRATOR).wsConnector().call(
-        new PostRequest("api/users/deactivate")
-            .setParam("login", user));
+      new PostRequest("api/users/deactivate")
+        .setParam("login", user));
   }
 
-  private void analyseWithOneIssuePerLine() {
+  private String analyseWithOneIssuePerLine(String projectRelativePath) {
     String qualityProfileKey = projectAnalysisRule.registerProfile("/issue/IssueActionTest/xoo-one-issue-per-line-profile.xml");
-    String projectKey = projectAnalysisRule.registerProject("issue/xoo-with-scm");
+    String projectKey = projectAnalysisRule.registerProject(projectRelativePath);
     projectAnalysis = projectAnalysisRule.newProjectAnalysis(projectKey)
-        .withQualityProfile(qualityProfileKey)
-        .withProperties("sonar.scm.disabled", "false", "sonar.scm.provider", "xoo");
+      .withQualityProfile(qualityProfileKey)
+      .withProperties("sonar.scm.disabled", "false", "sonar.scm.provider", "xoo");
+    return projectKey;
   }
 
-  private void analyseWithOneIssuePerLineAndFile() {
+  private void analyseWithOneIssuePerLineAndFile(String projectRelativePath) {
     String qualityProfileKey = projectAnalysisRule.registerProfile("/issue/IssueActionTest/xoo-one-issue-per-line-and-file-profile.xml");
-    String projectKey = projectAnalysisRule.registerProject("issue/xoo-with-scm");
+    String projectKey = projectAnalysisRule.registerProject(projectRelativePath);
     projectAnalysis = projectAnalysisRule.newProjectAnalysis(projectKey)
-        .withQualityProfile(qualityProfileKey)
-        .withProperties("sonar.scm.disabled", "false", "sonar.scm.provider", "xoo");
+      .withQualityProfile(qualityProfileKey)
+      .withProperties("sonar.scm.disabled", "false", "sonar.scm.provider", "xoo");
   }
 }

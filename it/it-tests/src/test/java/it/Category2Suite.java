@@ -102,6 +102,7 @@ public class Category2Suite {
 
   @ClassRule
   public static final Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
+//    .setServerProperty("sonar.ce.javaAdditionalOpts", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5006")
     .addPlugin(xooPlugin())
 
     // issue
