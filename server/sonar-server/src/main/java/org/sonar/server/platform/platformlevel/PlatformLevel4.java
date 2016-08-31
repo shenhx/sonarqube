@@ -451,6 +451,7 @@ public class PlatformLevel4 extends PlatformLevel {
       WebServiceFilter.class,
 
       // localization
+
       L10nWs.class,
 
       // authentication

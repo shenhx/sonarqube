@@ -46,6 +46,7 @@ import org.sonar.ce.CeTaskCommonsModule;
 import org.sonar.ce.db.ReadOnlyPropertiesDao;
 import org.sonar.ce.es.EsIndexerEnabler;
 import org.sonar.ce.platform.ComputeEngineExtensionInstaller;
+import org.sonar.ce.settings.ProjectSettingsFactory;
 import org.sonar.ce.user.CeUserSession;
 import org.sonar.core.component.DefaultResourceTypes;
 import org.sonar.core.config.CorePropertyDefinitions;
@@ -128,7 +129,6 @@ import org.sonar.server.rule.RuleRepositories;
 import org.sonar.server.rule.index.RuleIndex;
 import org.sonar.server.rule.index.RuleIndexer;
 import org.sonar.server.search.EsSearchModule;
-import org.sonar.ce.settings.ProjectSettingsFactory;
 import org.sonar.server.settings.SystemSettings;
 import org.sonar.server.settings.ThreadLocalSettings;
 import org.sonar.server.startup.LogServerId;
@@ -211,7 +211,6 @@ public class ComputeEngineContainerImpl implements ComputeEngineContainer {
       new SonarQubeVersion(apiVersion),
       SonarRuntimeImpl.forSonarQube(ApiVersion.load(System2.INSTANCE), SonarQubeSide.COMPUTE_ENGINE),
       UuidFactoryImpl.INSTANCE,
-      UrlSettings.class,
       ClusterImpl.class,
       DefaultDatabase.class,
       DatabaseChecker.class,
@@ -254,6 +253,9 @@ public class ComputeEngineContainerImpl implements ComputeEngineContainer {
 
   private static Object[] level2Components() {
     return new Object[] {
+      ThreadLocalSettings.class,
+      UrlSettings.class,
+
       // add ReadOnlyPropertiesDao at level2 again so that it shadows PropertiesDao
       ReadOnlyPropertiesDao.class,
       DefaultServerUpgradeStatus.class,
@@ -279,7 +281,6 @@ public class ComputeEngineContainerImpl implements ComputeEngineContainer {
   private static Object[] level3Components() {
     return new Object[] {
       new StartupMetadataProvider(),
-      ThreadLocalSettings.class,
       UriReader.class,
       ServerImpl.class
     };
