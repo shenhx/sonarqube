@@ -80,20 +80,6 @@ public class PersistentSettingsTest {
   }
 
   @Test
-  public void deleteProperties() {
-    newGlobalProperty("in_db1", "foo");
-    newGlobalProperty("in_db2", "bar");
-    settings.setProperty("foo", "bar");
-    assertThat(settings.hasKey("foo")).isTrue();
-
-    PersistentSettings persistentSettings = new PersistentSettings(dbClient, settings);
-    persistentSettings.deleteProperties();
-
-    assertThat(settings.getProperties()).isEmpty();
-    assertThat(dao.selectGlobalProperties()).isEmpty();
-  }
-
-  @Test
   public void shortcuts_on_settings() {
     settings.setProperty("foo", "bar");
     assertThat(settings.hasKey("foo")).isTrue();

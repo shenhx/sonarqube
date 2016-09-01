@@ -81,12 +81,6 @@ public class PersistentSettings implements Startable {
     return this;
   }
 
-  public PersistentSettings deleteProperties() {
-    serverSettings.clear();
-    propertiesDao.deleteGlobalProperties();
-    return this;
-  }
-
   public PersistentSettings saveProperties(Map<String, String> properties) {
     serverSettings.addProperties(properties);
     propertiesDao.insertGlobalProperties(properties);
