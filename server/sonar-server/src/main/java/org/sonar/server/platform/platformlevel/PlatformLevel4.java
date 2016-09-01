@@ -176,6 +176,7 @@ import org.sonar.server.plugins.ws.UninstallAction;
 import org.sonar.server.plugins.ws.UpdatesAction;
 import org.sonar.server.project.ws.ProjectsWsModule;
 import org.sonar.server.projectlink.ws.ProjectLinksModule;
+import org.sonar.server.property.InternalPropertiesImpl;
 import org.sonar.server.qualitygate.QualityGateModule;
 import org.sonar.server.qualityprofile.BuiltInProfiles;
 import org.sonar.server.qualityprofile.QProfileBackuper;
@@ -633,6 +634,7 @@ public class PlatformLevel4 extends PlatformLevel {
       CeModule.class,
       CeWsModule.class,
 
+      InternalPropertiesImpl.class,
       ProjectSettingsFactory.class,
 
       // UI
